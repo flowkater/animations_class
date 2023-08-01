@@ -29,22 +29,22 @@ class _ImplicitAnimationsScreenState extends State<ImplicitAnimationsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // _buildAnimatedAlign(_visible, size),
-            // _buildAnimatedContainer(_visible, size),
-            TweenAnimationBuilder(
-              tween: ColorTween(
-                begin: Colors.yellow,
-                end: Colors.red,
-              ),
-              curve: Curves.bounceInOut,
-              duration: const Duration(seconds: 5),
-              builder: ((context, value, child) {
-                return Image.network(
-                  "https://upload.wikimedia.org/wikipedia/commons/4/4f/Dash%2C_the_mascot_of_the_Dart_programming_language.png",
-                  color: value,
-                  colorBlendMode: BlendMode.colorBurn,
-                );
-              }),
-            ),
+            _buildAnimatedContainer(_visible, size),
+            // TweenAnimationBuilder(
+            //   tween: ColorTween(
+            //     begin: Colors.yellow,
+            //     end: Colors.red,
+            //   ),
+            //   curve: Curves.bounceInOut,
+            //   duration: const Duration(seconds: 5),
+            //   builder: ((context, value, child) {
+            //     return Image.network(
+            //       "https://upload.wikimedia.org/wikipedia/commons/4/4f/Dash%2C_the_mascot_of_the_Dart_programming_language.png",
+            //       color: value,
+            //       colorBlendMode: BlendMode.colorBurn,
+            //     );
+            //   }),
+            // ),
             const SizedBox(height: 50),
             ElevatedButton(
               onPressed: _toggleVisibility,
