@@ -11,8 +11,6 @@ class SwipingCardsScreen extends StatefulWidget {
 class _SwipingCardsScreenState extends State<SwipingCardsScreen>
     with SingleTickerProviderStateMixin {
   late final size = MediaQuery.of(context).size;
-  late final bound = size.width - 200;
-  late final dropZone = size.width + 100;
   int _index = 1;
 
   late final AnimationController _position = AnimationController(
@@ -60,6 +58,9 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
   }
 
   void _animateCard() {
+    late final bound = size.width - (size.width * 0.4);
+    late final dropZone = size.width + 100;
+
     if (_position.value.abs() >= bound) {
       final factor = _position.value.isNegative ? -1 : 1;
       _position
@@ -137,8 +138,7 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
             child: Column(
               children: [
                 SizedBox(
-                  width: 344,
-                  height: 670,
+                  height: size.height * 0.72,
                   child: Stack(
                     alignment: Alignment.topCenter,
                     children: [
