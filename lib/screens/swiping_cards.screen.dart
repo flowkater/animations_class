@@ -1,5 +1,4 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 
 class SwipingCardsScreen extends StatefulWidget {
@@ -12,6 +11,8 @@ class SwipingCardsScreen extends StatefulWidget {
 class _SwipingCardsScreenState extends State<SwipingCardsScreen>
     with SingleTickerProviderStateMixin {
   late final size = MediaQuery.of(context).size;
+  late final bound = size.width - 200;
+  late final dropZone = size.width + 100;
   int _index = 1;
 
   late final AnimationController _position = AnimationController(
@@ -32,13 +33,22 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
     end: 1.0,
   );
 
-  // double posX = 0;
+  late final Tween<double> _buttonScale = Tween(
+    begin: 1.0,
+    end: 1.2,
+  );
+
+  late final ColorTween _overlayRedColor = ColorTween(
+    begin: Colors.white,
+    end: Colors.red.withOpacity(0.6),
+  );
+
+  late final ColorTween _overlayGreenColor = ColorTween(
+    begin: Colors.white,
+    end: Colors.green.withOpacity(0.6),
+  );
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
-    // setState(() {
-    //   posX += details.delta.dx;
-    // });
-
     _position.value += details.delta.dx;
   }
 
@@ -49,25 +59,30 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
     });
   }
 
-  void _onHorizontalDragEnd(DragEndDetails details) {
-    // setState(() {
-    //   posX = 0;
-    // });
-    final bound = size.width - 200;
-    final dropZone = size.width + 100;
-
+  void _animateCard() {
     if (_position.value.abs() >= bound) {
-      if (_position.value.isNegative) {
-        _position.animateTo(dropZone * -1).whenComplete(_whenComplete);
-      } else {
-        _position.animateTo(dropZone).whenComplete(_whenComplete);
-      }
+      final factor = _position.value.isNegative ? -1 : 1;
+      _position
+          .animateTo(dropZone * factor, curve: Curves.easeOut)
+          .whenComplete(_whenComplete);
     } else {
       _position.animateTo(
         0,
         curve: Curves.easeOut,
       );
     }
+  }
+
+  void _onPressedPositive() {
+    _position.animateTo(size.width + 100).whenComplete(_animateCard);
+  }
+
+  void _onPressedNegative() {
+    _position.animateTo((size.width + 100) * -1).whenComplete(_animateCard);
+  }
+
+  void _onHorizontalDragEnd(DragEndDetails details) {
+    _animateCard();
   }
 
   @override
@@ -91,23 +106,45 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
               pi /
               180;
 
-          final scale = _scale.transform(_position.value.abs() / size.width);
+          final convertedValue = min(_position.value.abs() / size.width, 1.0);
+          final scale = _scale.transform(convertedValue);
+
+          final greenButtonScale = _position.value.isNegative
+              ? 1.0
+              : _buttonScale.transform(convertedValue);
+          final redButtonScale = _position.value.isNegative
+              ? _buttonScale.transform(convertedValue)
+              : 1.0;
+
+          final redOverlayColor = _position.value.isNegative
+              ? _overlayRedColor.transform(convertedValue)
+              : Colors.white;
+          final greenOverlayColor = _position.value.isNegative
+              ? Colors.white
+              : _overlayGreenColor.transform(convertedValue);
+
+          final greenIconColor =
+              convertedValue > 0.65 && !_position.value.isNegative
+                  ? Colors.white
+                  : Colors.green;
+
+          final redIconColor =
+              convertedValue > 0.65 && _position.value.isNegative
+                  ? Colors.white
+                  : Colors.red;
 
           return Stack(
             alignment: Alignment.topCenter,
             children: [
-              // Align(
-              //   alignment: Alignment.topCenter,
               Positioned(
-                top: 100,
+                top: 50,
                 child: Transform.scale(
-                  scale: scale,
+                  scale: min(scale, 1.0),
                   child: Card(index: _index == 5 ? 1 : _index + 1),
                 ),
               ),
-
               Positioned(
-                top: 100,
+                top: 50,
                 child: GestureDetector(
                   onHorizontalDragUpdate: _onHorizontalDragUpdate,
                   onHorizontalDragEnd: _onHorizontalDragEnd,
@@ -120,9 +157,91 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
                   ),
                 ),
               ),
+              Positioned(
+                top: 690,
+                child: Row(
+                  children: [
+                    Button(
+                      buttonScale: redButtonScale,
+                      onTap: _onPressedNegative,
+                      iconColor: redIconColor,
+                      overlayColor: redOverlayColor!,
+                      icon: Icons.close,
+                    ),
+                    const SizedBox(
+                      width: 30,
+                    ),
+                    Button(
+                      buttonScale: greenButtonScale,
+                      onTap: _onPressedPositive,
+                      iconColor: greenIconColor,
+                      overlayColor: greenOverlayColor!,
+                      icon: Icons.check,
+                    ),
+                  ],
+                ),
+              ),
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class Button extends StatelessWidget {
+  final double buttonScale;
+  final VoidCallback onTap;
+  final Color iconColor;
+  final Color overlayColor;
+  final IconData icon;
+
+  const Button({
+    super.key,
+    required this.buttonScale,
+    required this.onTap,
+    required this.iconColor,
+    required this.overlayColor,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Transform.scale(
+        scale: buttonScale,
+        child: Material(
+          elevation: 10.0,
+          shape: const CircleBorder(),
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              Container(
+                width: 70,
+                height: 70,
+                decoration: BoxDecoration(
+                  border: Border.all(width: 3, color: Colors.white),
+                  shape: BoxShape.circle,
+                  color: overlayColor,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.5),
+                      spreadRadius: 2,
+                      blurRadius: 5,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                icon,
+                color: iconColor,
+                size: 40,
+              )
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -143,14 +262,10 @@ class Card extends StatelessWidget {
       clipBehavior: Clip.hardEdge,
       child: SizedBox(
         width: size.width * 0.8,
-        height: size.height * 0.5,
-        child: SizedBox(
-          width: size.width * 0.8,
-          height: size.height * 0.5,
-          child: Image.asset(
-            'assets/covers/$index.jpg',
-            fit: BoxFit.cover,
-          ),
+        height: size.height * 0.65,
+        child: Image.asset(
+          'assets/covers/$index.jpg',
+          fit: BoxFit.cover,
         ),
       ),
     );
