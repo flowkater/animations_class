@@ -17,7 +17,7 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
 
   late final AnimationController _position = AnimationController(
     vsync: this,
-    duration: const Duration(milliseconds: 1000),
+    duration: const Duration(milliseconds: 500),
     lowerBound: (size.width + 100) * -1,
     upperBound: (size.width + 100),
     value: 0.0,
@@ -40,12 +40,12 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
 
   late final ColorTween _overlayRedColor = ColorTween(
     begin: Colors.white,
-    end: Colors.red.withOpacity(0.6),
+    end: Colors.red.withOpacity(1.0),
   );
 
   late final ColorTween _overlayGreenColor = ColorTween(
     begin: Colors.white,
-    end: Colors.green.withOpacity(0.6),
+    end: Colors.green.withOpacity(1.0),
   );
 
   void _onHorizontalDragUpdate(DragUpdateDetails details) {
@@ -133,33 +133,44 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
                   ? Colors.white
                   : Colors.red;
 
-          return Stack(
-            alignment: Alignment.topCenter,
-            children: [
-              Positioned(
-                top: 50,
-                child: Transform.scale(
-                  scale: min(scale, 1.0),
-                  child: Card(index: _index == 5 ? 1 : _index + 1),
-                ),
-              ),
-              Positioned(
-                top: 50,
-                child: GestureDetector(
-                  onHorizontalDragUpdate: _onHorizontalDragUpdate,
-                  onHorizontalDragEnd: _onHorizontalDragEnd,
-                  child: Transform.translate(
-                    offset: Offset(_position.value, 0),
-                    child: Transform.rotate(
-                      angle: angle,
-                      child: Card(index: _index),
-                    ),
+          return SingleChildScrollView(
+            child: Column(
+              children: [
+                SizedBox(
+                  width: 344,
+                  height: 670,
+                  child: Stack(
+                    alignment: Alignment.topCenter,
+                    children: [
+                      Positioned(
+                        top: 50,
+                        child: Transform.scale(
+                          scale: min(scale, 1.0),
+                          child: Card(index: _index == 5 ? 1 : _index + 1),
+                        ),
+                      ),
+                      Positioned(
+                        top: 50,
+                        child: GestureDetector(
+                          onHorizontalDragUpdate: _onHorizontalDragUpdate,
+                          onHorizontalDragEnd: _onHorizontalDragEnd,
+                          child: Transform.translate(
+                            offset: Offset(_position.value, 0),
+                            child: Transform.rotate(
+                              angle: angle,
+                              child: Card(index: _index),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ),
-              Positioned(
-                top: 690,
-                child: Row(
+                const SizedBox(
+                  height: 10,
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Button(
                       buttonScale: redButtonScale,
@@ -179,9 +190,9 @@ class _SwipingCardsScreenState extends State<SwipingCardsScreen>
                       icon: Icons.check,
                     ),
                   ],
-                ),
-              ),
-            ],
+                )
+              ],
+            ),
           );
         },
       ),
